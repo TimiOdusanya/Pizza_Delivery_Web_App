@@ -1,0 +1,43 @@
+﻿@model PaymentModel
+
+@{
+    ViewData["Title"] = "Receipt";
+}
+
+<h1>Receipt</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            Email Address
+        </dt>
+        <dd class="col-sm-10">
+            @CurrentUser.Email
+        </dd>
+        <dt class="col-sm-2">
+            Reference Id
+        </dt>
+        <dd class="col-sm-10">
+            
+        </dd>
+        <dt class="col-sm-2">
+           Total
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Cart.GrandTotal
+        </dd>
+        <dt class="col-sm-2">
+            Status
+        </dt>
+        <dd class="col-sm-10">
+            Success!
+        </dd>
+
+    </dl>
+</div>
+
+<div>
+    <a asp-action="Index" asp-controller="Order" asp-area="User" class="btn btn-success">Go To Order Details</a>
+
+</div>

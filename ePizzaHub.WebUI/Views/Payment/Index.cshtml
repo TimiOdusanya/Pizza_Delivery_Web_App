@@ -1,0 +1,215 @@
+﻿@model PaymentModel
+
+@{
+    ViewData["Title"] = "Payment | ePizza Hub";
+    Address address = TempData.Peek<Address>("Address");
+}
+
+<section>
+    @if (Model != null)
+    {
+        <div class="row mt-3">
+            <div class="col-lg-8">
+                <div class="card mb-3">
+                    <div class="col-sm-12">
+                        <h5 class="mt-3">
+                            Order Details
+                            <span class="float-right">
+                                Item(s): @Model.Cart.Items.Count()
+                            </span>
+                        </h5>
+                    </div>
+                    <hr />
+                    <div class="card-body pt-0 pb-0">
+                        @foreach (var item in Model.Cart.Items)
+                        {
+                            <div class="row">
+                                <div class="col-md-5 col-lg-3 col-xl-3">
+                                    <div class="rounded mb-3 mb-md-0">
+                                        <img class="rounded w-100"
+                                             src="@item.ImageUrl" alt="sample" />
+                                    </div>
+                                </div>
+                                <div class="col-md-7 col-lg-9 col-xl-9">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h5>@item.Name</h5>
+                                            <p class="mb-2 text-muted small">Size: Regular</p>
+                                            <p class="mb-2 text-muted small">
+                                                Unit Price: ₦@item.UnitPrice.ToString("##.#")
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <div class="def-number-input number-input safari-only mb-0 w-100">
+                                                <div class="input-group mb-3">
+
+                                                    <input class="form-control sm-control" size="2" min="0" name="quantity" value="@item.Quantity" readonly />
+
+                                                </div>
+                                            </div>
+
+                                            <span id="spanTotal" class="form-text text-muted text-center">
+                                                Total : ₦@((item.UnitPrice * @item.Quantity).ToString("##.#"))
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            @if (Model.Cart.Items.IndexOf(item) < Model.Cart.Items.Count - 1)
+                            {
+                                <hr class="mb-4">
+                            }
+                        }
+                    </div>
+                    <div class="col-sm-12">
+                        <h5 class="mt-2">Delivery Address</h5>
+                    </div>
+                    <hr />
+                    <div class="card-body pb-0">
+                        <dl class="row">
+                            <dt class="col-sm-2">
+                                Street
+                            </dt>
+                            <dd class="col-sm-4" id="address">
+                                <input type="text" value="@address.Street" class="form-control" disabled  id="street"/>
+                                
+                            </dd>
+                            <dt class="col-sm-2" id="locale">
+                                Locality
+                            </dt>
+                            <dd class="col-sm-4">
+                                <input type="text" value="@address.Locality" class="form-control" disabled id="locale" />
+                               
+                            </dd>
+                            <dt class="col-sm-2">
+                                Zip Code
+                            </dt>
+                            <dd class="col-sm-4">
+                                <input type="text" value=" @address.ZipCode" class="form-control" disabled id="zipcode" />
+                                
+                            </dd>
+                            <dt class="col-sm-2">
+                                Contact No.
+                            </dt>
+                            <dd class="col-sm-4">
+                                <input type="text" value=" @address.PhoneNumber" class="form-control" disabled id="phonenumber" />
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card mb-3">
+                    <div class="col-sm-12">
+                        <h5 class="mt-3"> Order Summary</h5>
+                    </div>
+                    <hr />
+                    <div id="paymentForm" class="card-body pt-0">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                                Amount
+                                <span>+₦@Model.Cart.Total</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                                Tax (5%)
+                                <span>+₦@Model.Cart.Tax</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 mb-3">
+                                <strong>Total Amount</strong>
+                                <span><strong>₦@Model.Cart.GrandTotal</strong></span>
+
+                            </li>
+                        </ul>
+                        @if (CurrentUser != null)
+                        {
+                            //<a href="#" type="submit" class="btn btn-primary btn-block" onclick="payWithPaystack()">Pay Now</a>
+                            <button type="submit" class="btn btn-primary btn-block" onclick="payWithPaystack()"> Pay Now</button>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</section>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+
+   var paymentForm = document.getElementById('paymentForm');
+paymentForm.addEventListener('submit', payWithPaystack, false);
+    function payWithPaystack() {
+        var reference = Math.floor((Math.random() * 1000000000) + 1)
+  var handler = PaystackPop.setup({
+      key: 'pk_test_c1f09ee2f9697cf65e03ac0050683a7c7498d6a0', // Replace with your public key
+      name: '@Model.Name',
+    email: '@CurrentUser.Email',
+    amount: '@(Model.GrandTotal * 100)', // the amount value is multiplied by 100 to convert to the lowest currency unit
+    currency: 'NGN', // Use GHS for Ghana Cedis or USD for US Dollars
+      ref: reference, // Replace with a reference you generated
+      callback: function (response) {
+      /*window.location = "/Payment/Receipt";*/
+          $.ajax({
+              type: "POST",
+              url: "/Payment/SaveOrder",// where you wanna post
+              data: {
+                  Name: name,
+                  Razorpaykey: reference,
+                  GrandTotal: amount,
+                  userId: @CurrentUser.Id,
+              },
+              
+              error: function (jqXHR, textStatus, errorMessage) {
+                  console.log(errorMessage); // Optional
+              },
+              success: function (data) { console.log(data) }
+          });
+
+      },
+
+
+
+    //callback: function(response) {
+    //  //this happens after the payment is completed successfully
+    //  var reference = response.reference;
+    //  alert('Payment complete! Reference: ' + reference);
+      // Make an AJAX call to your server with the reference to verify the transaction
+    //},
+    onClose: function() {
+      alert('Transaction was not completed, window closed.');
+    },
+  });
+        handler.openIframe();
+
+
+
+}
+</script>
+
+
+  @*$.ajax({
+              type: "POST",
+              url: "/cart/saveOrder",
+              data: { //Passing data
+                  ref: reference,
+                  Name: $("#txtName").val(), //Reading text box values using Jquery
+                  //City: $("#txtAddress").val(),
+                  Address: $("#txtcity").val()
+              } ,              contentType: "application/json; charset=utf-8",
+              dataType: "json",
+              success: function (response) {
+                  if (response != null) {
+                      alert("Name : " + response.Name + ", Designation : " + response.Designation + ", Location :" + response.Location);
+                  } else {
+                      alert("Something went wrong");
+                  }
+              },
+              failure: function (response) {
+                  alert(response.responseText);
+              },
+              error: function (response) {
+                  alert(response.responseText);
+              }
+          });*@
+

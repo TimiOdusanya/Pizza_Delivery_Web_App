@@ -1,0 +1,40 @@
+﻿<div class="container pb-4  ">
+    <div class="row pt-4">
+        <h2 class="col-sm-12 mb-4" id="heading">Pizza, Desserts and Beverages</h2>
+    </div>
+
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-sm-4 pb-4">
+                <div class="card box-shadow">
+                    <img src="@item.ImageUrl" class="card-img-top" alt="image" style="width: 100%">
+                    <div class="card-body">
+                        <h5 class="card-title"> @item.Name <span class="float-right font-20">₦@item.UnitPrice.ToString("##.#")</span></h5>
+                        <p class="card-text">@item.Description</p>
+                        <p>
+                            <span class="pt-1 d-inline-block"> Size : Regular</span>
+                            <span class="float-right font-20">
+
+                                <a href="javascript:void(0)" onclick="AddToCart('@item.Id', '@item.Name', '@item.UnitPrice', 1)" class="btn btn-outline-primary">Add To Cart</a>
+                            </span>
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+    </div>
+
+</div>
+
+<div class="toast fade hide" data-autohide="false" id="toastCart">
+    <div class="toast-header">
+        <strong class="mr-auto text-primary">Notification</strong>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">x</button>
+    </div>
+    <div class="toast-body"></div>
+</div>
